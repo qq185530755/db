@@ -64,7 +64,7 @@ class dbmanage(object):
         for tmpkey, tmpvalue in params.items():
             key.append(tmpkey)
             if isinstance(tmpvalue, str):
-                value.append('\"' + tmpvalue + '\"')
+                value.append('"' + tmpvalue + '"')
             else:
                 value.append(str(tmpvalue))
         attrs_sql = '(' + ','.join(key) + ')'
