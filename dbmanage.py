@@ -1,4 +1,5 @@
 import pymysql
+import pandas as pd
 
 class dbmanage(object):
 
@@ -63,7 +64,7 @@ class dbmanage(object):
         for tmpkey, tmpvalue in params.items():
             key.append(tmpkey)
             if isinstance(tmpvalue, str):
-                value.append('"' + tmpvalue + '"')
+                value.append('\"' + tmpvalue + '\"')
             else:
                 value.append(str(tmpvalue))
         attrs_sql = '(' + ','.join(key) + ')'
@@ -92,7 +93,7 @@ class dbmanage(object):
                     v = '"' + v + '"'
                 consql = consql + k + '=' + str(v) + ' and '
         consql = consql + ' 1=1 '
-        sql = "DELETE FROM %s where%s" % (tablename, consql)
+        sql = 'DELETE FROM %s where%s' % (tablename, consql)
         print (sql)
         self.excute_cmd(sql)
 
@@ -115,8 +116,8 @@ class dbmanage(object):
         for tmpkey, tmpvalue in attrs_dict.items():
             if isinstance(tmpvalue, str):
                 tmpvalue = '"' + tmpvalue + '"'
-            attrs_list.append(tmpkey + "=" + str(tmpvalue))
-        attrs_sql = ",".join(attrs_list)
+            attrs_list.append(tmpkey + '=' + str(tmpvalue))
+        attrs_sql = ','.join(attrs_list)
 
         if isinstance(cond_dict, dict):
             for k, v in cond_dict.items():
@@ -124,11 +125,11 @@ class dbmanage(object):
                     v = '"' + v + '"'
                 consql = consql + k + '=' + str(v) + ' and '
         consql = consql + ' 1=1 '
-        sql = "update %s set %s where%s" % (tablename, attrs_sql, consql)
+        sql = 'update %s set %s where%s' % (tablename, attrs_sql, consql)
         print(sql)
         self.excute_cmd(sql)
 
-    def select(self, tablename, cond_dict='', fields='*', order=''):
+    def select(self, tablename, cond_dict='', fields='*', order='', pds = True):
         """查询数据
 
                    args：
@@ -153,14 +154,18 @@ class dbmanage(object):
         consql = consql + ' 1=1 '  # 由于不清楚具体几个条件，加上1=1 为了防止cond_dict只有一条数据时，加上and会报错
 
         if isinstance(fields, list):
-            fields = ",".join(fields)
+            fields = ','.join(fields)
         field_sql = 'select %s from %s where ' % (fields, tablename)
         cmd = field_sql + consql + order
         print(cmd)
-        res = self.excute_cmd(cmd)
-        print(res)
-
-
+        if pds:
+            self.connect_db()
+            res = pd.read_sql(cmd, con=self.conn)
+            self.close()
+            return res
+        else:
+            res = self.excute_cmd(cmd)
+            return res
 
     def add_column(self, table_name, column_name, column_type, dft_val='0'):
         if isinstance(dft_val,str):
